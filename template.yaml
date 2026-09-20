@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: Real-Time Serverless Polling & Voting Application
 
 Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
   Function:
     Timeout: 5
     MemorySize: 128

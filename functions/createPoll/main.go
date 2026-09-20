@@ -63,8 +63,8 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	if body.Question == "" {
 		return errorResponse(http.StatusBadRequest, "question is required"), nil
 	}
-	if len(body.Options) < 2 || len(body.Options) > 5 {
-		return errorResponse(http.StatusBadRequest, "provide between 2 and 5 options"), nil
+	if len(body.Options) < 2 || len(body.Options) > 6 {
+		return errorResponse(http.StatusBadRequest, "provide between 2 and 6 options"), nil
 	}
 
 	for _, opt := range body.Options {
@@ -108,7 +108,12 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusCreated,
 		Body:       string(resp),
-		Headers:    map[string]string{"Content-Type": "application/json"},
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+			"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+		},
 	}, nil
 
 }
@@ -118,7 +123,12 @@ func errorResponse(status int, message string) events.APIGatewayProxyResponse {
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
 		Body:       string(body),
-		Headers:    map[string]string{"Content-Type": "application/json"},
+		Headers: map[string]string{
+			"Content-Type":                 "application/json",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+			"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+		},
 	}
 }
 

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>PulsePoll — Live Poll Results</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <style>
+    @layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#e4e1e6",
+            "secondary-container": "#7cf994",
+            "inverse-surface": "#303033",
+            "surface": "#fbf8fc",
+            "tertiary": "#943700",
+            "primary-container": "#2563eb",
+            "tertiary-fixed-dim": "#ffb596",
+            "on-secondary": "#ffffff",
+            "secondary": "#006e2d",
+            "on-tertiary-fixed-variant": "#7d2d00",
+            "outline-variant": "#c3c6d7",
+            "surface-tint": "#0053db",
+            "secondary-fixed": "#7ffc97",
+            "on-secondary-fixed": "#002109",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#434655",
+            "surface-container-low": "#f6f2f7",
+            "primary-fixed-dim": "#b4c5ff",
+            "surface-dim": "#dcd9dd",
+            "on-tertiary-fixed": "#360f00",
+            "surface-container-highest": "#e4e1e6",
+            "surface-container": "#f0edf1",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed-variant": "#005320",
+            "tertiary-fixed": "#ffdbcd",
+            "background": "#fbf8fc",
+            "surface-container-high": "#eae7eb",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed-variant": "#003ea8",
+            "tertiary-container": "#bc4800",
+            "on-background": "#1b1b1e",
+            "inverse-on-surface": "#f3f0f4",
+            "error": "#ba1a1a",
+            "on-error": "#ffffff",
+            "on-primary-fixed": "#00174b",
+            "on-surface": "#1b1b1e",
+            "on-tertiary-container": "#ffede6",
+            "secondary-fixed-dim": "#62df7d",
+            "outline": "#737686",
+            "on-primary-container": "#eeefff",
+            "on-primary": "#ffffff",
+            "surface-bright": "#fbf8fc",
+            "primary": "#004ac6",
+            "primary-fixed": "#dbe1ff",
+            "error-container": "#ffdad6",
+            "inverse-primary": "#b4c5ff",
+            "on-secondary-container": "#007230"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "1rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "gutter-mobile": "1rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem",
+            "space-xl": "2rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Inter"],
+            "label-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "label-md": ["Inter"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "label-lg": ["Inter"],
+            "code-md": ["JetBrains Mono"],
+            "headline-sm": ["Inter"]
+          },
+          "fontSize": {
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+            "code-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body-md text-body-md text-on-surface antialiased min-h-screen flex flex-col justify-between">
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-14 max-w-[640px] mx-auto px-margin-mobile md:px-margin flex items-center justify-between">
+      <a class="font-headline-sm text-headline-sm text-on-surface tracking-tight no-underline hover:text-on-surface-variant transition-colors" href="index.html">PulsePoll</a>
+      <nav class="flex items-center">
+        <a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors px-space-sm py-space-xs rounded" href="index.html">Create poll</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="w-full pt-14 flex-1 flex flex-col items-center">
+    <div class="w-full max-w-[640px] px-margin-mobile md:px-margin py-space-xl">
+      <div class="flex flex-col w-full items-center">
+        <div class="w-full max-w-[560px] mx-auto flex flex-col space-y-6">
+          
+          <!-- Connection Status Indicator -->
+          <div class="flex items-center gap-2" id="connectionStatus">
+            <span class="inline-block w-2 h-2 rounded-full bg-amber-500" id="statusDot"></span>
+            <span class="font-label-md text-label-md text-outline" id="statusText">Connecting...</span>
+          </div>
+
+          <!-- Poll Question -->
+          <div class="flex flex-col">
+            <h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight" id="pollQuestion">
+              Loading poll...
+            </h1>
+          </div>
+
+          <!-- Options List (Populated Dynamically) -->
+          <div aria-labelledby="pollQuestion" class="flex flex-col space-y-3 w-full" id="optionsList" role="radiogroup">
+            <div class="p-4 rounded-lg bg-surface-container-low text-outline text-center">Loading options...</div>
+          </div>
+
+          <!-- Total Votes Meta -->
+          <div class="flex items-center justify-between pt-1">
+            <span class="font-body-md text-body-md text-outline" id="totalVotes">0 total votes</span>
+          </div>
+
+          <!-- Error Alert Banner -->
+          <div id="errorBanner" class="hidden text-error bg-error-container text-on-error-container text-body-sm p-3 rounded-lg"></div>
+
+          <!-- Actions -->
+          <div class="flex flex-col space-y-3 pt-2">
+            <button class="w-full h-11 bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg rounded-lg transition-colors flex items-center justify-center font-medium focus:outline-none" id="voteBtn">
+              Vote
+            </button>
+            
+            <!-- Share Box -->
+            <div class="flex flex-col space-y-2 pt-2">
+              <div class="flex items-center gap-2 p-1.5 pl-3 bg-surface-container-low rounded-lg border border-surface-variant">
+                <input id="shareLinkInput" readonly class="flex-1 bg-transparent text-xs text-outline font-code-md select-all outline-none" value="Loading link..." />
+                <button id="copyLinkBtn" type="button" class="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-xs rounded transition-colors font-medium flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                  <span id="copyBtnText">Copy</span>
+                </button>
+              </div>
+              <div class="flex justify-center">
+                <button class="inline-flex items-center gap-1.5 py-2 px-3 text-outline hover:text-on-surface transition-colors font-label-md text-label-md bg-transparent rounded" id="shareBtn">
+                  <span class="material-symbols-outlined text-[16px]">share</span>
+                  <span id="shareText">Share poll</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full bg-surface/50 py-space-lg">
+    <div class="max-w-[640px] mx-auto px-margin-mobile md:px-margin flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+      <span>PulsePoll</span>
+      <span class="font-code-md text-code-md text-outline">real-time serverless</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="config.js"></script>
+  <script>
+    (function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pollId = urlParams.get('id');
+
+      const questionEl = document.getElementById('pollQuestion');
+      const optionsContainer = document.getElementById('optionsList');
+      const totalVotesEl = document.getElementById('totalVotes');
+      const voteBtn = document.getElementById('voteBtn');
+      const shareBtn = document.getElementById('shareBtn');
+      const shareText = document.getElementById('shareText');
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      const errorBanner = document.getElementById('errorBanner');
+
+      const shareLinkInput = document.getElementById('shareLinkInput');
+      const copyLinkBtn = document.getElementById('copyLinkBtn');
+      const copyBtnText = document.getElementById('copyBtnText');
+
+      // Helper to generate a globally accessible URL for phones and external devices
+      function getShareableUrl() {
+        if (!pollId) return '';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          return `${CONFIG.PUBLIC_APP_URL}/poll.html?id=${encodeURIComponent(pollId)}`;
+        }
+        return window.location.href;
+      }
+
+      // Check persistent vote state from localStorage
+      const storageKey = 'pulsepoll_voted_' + (pollId || '');
+      const storedVote = pollId ? localStorage.getItem(storageKey) : null;
+
+      let selectedOption = storedVote || null;
+      let hasVoted = Boolean(storedVote);
+      let currentPoll = null;
+      let ws = null;
+      let reconnectTimer = null;
+
+      function showError(msg) {
+        errorBanner.textContent = msg;
+        errorBanner.classList.remove('hidden');
+      }
+
+      function hideError() {
+        errorBanner.classList.add('hidden');
+      }
+
+      function setStatus(status, text) {
+        statusText.textContent = text;
+        if (status === 'live') {
+          statusDot.className = 'inline-block w-2 h-2 rounded-full bg-secondary';
+        } else if (status === 'connecting') {
+          statusDot.className = 'inline-block w-2 h-2 rounded-full bg-amber-500';
+        } else {
+          statusDot.className = 'inline-block w-2 h-2 rounded-full bg-error';
+        }
+      }
+
+      function updateVoteButtonState() {
+        if (hasVoted) {
+          voteBtn.textContent = selectedOption ? `Vote submitted (${selectedOption})` : 'Vote already submitted';
+          voteBtn.className = 'w-full h-11 bg-surface-container-high text-outline font-label-lg text-label-lg rounded-lg flex items-center justify-center font-medium cursor-default shadow-none border border-surface-variant';
+          voteBtn.disabled = true;
+        } else {
+          voteBtn.textContent = 'Vote';
+          voteBtn.className = 'w-full h-11 bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg rounded-lg transition-colors flex items-center justify-center font-medium focus:outline-none cursor-pointer';
+          voteBtn.disabled = false;
+        }
+      }
+
+      function renderPollUI(question, options) {
+        questionEl.textContent = question;
+
+        let total = 0;
+        const optionKeys = Object.keys(options || {});
+        optionKeys.forEach(k => {
+          total += (options[k].count || 0);
+        });
+
+        totalVotesEl.textContent = `${total} total vote${total === 1 ? '' : 's'}`;
+
+        // Default to first option if none selected yet and hasn't voted
+        if (!selectedOption && optionKeys.length > 0) {
+          selectedOption = optionKeys[0];
+        }
+
+        optionsContainer.innerHTML = '';
+
+        optionKeys.forEach((key) => {
+          const count = options[key].count || 0;
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+          const isSelected = key === selectedOption;
+          const isUserVotedChoice = hasVoted && (key === storedVote || key === selectedOption);
+
+          const optDiv = document.createElement('div');
+          const cursorClass = hasVoted ? 'cursor-default' : 'cursor-pointer hover:border-outline-variant';
+          const borderClass = isSelected ? 'border-primary-container bg-primary-fixed/10' : 'border-surface-variant bg-surface-container-lowest';
+          
+          optDiv.className = `poll-option group flex flex-col p-4 rounded-lg border transition-all select-none ${cursorClass} ${borderClass}`;
+          optDiv.dataset.option = key;
+
+          optDiv.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <span class="radio-indicator flex items-center justify-center w-4 h-4 rounded-full border ${
+                  isSelected ? 'border-primary-container' : 'border-outline-variant'
+                } bg-surface-container-lowest">
+                  <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-primary-container' : 'bg-transparent'}"></span>
+                </span>
+                <span class="font-headline-sm text-headline-sm text-on-surface font-medium">${key}</span>
+                ${isUserVotedChoice ? '<span class="font-label-sm text-[10px] px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-medium tracking-wide uppercase">Your vote</span>' : ''}
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="vote-count font-body-sm text-body-sm text-outline">${count} vote${count === 1 ? '' : 's'}</span>
+                <span class="vote-pct font-code-md text-code-md text-on-surface font-medium">${pct}%</span>
+              </div>
+            </div>
+            <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+              <div class="progress-bar bg-primary-container h-full rounded-full transition-all duration-500 ease-out" style="width: ${pct}%;"></div>
+            </div>
+          `;
+
+          if (!hasVoted) {
+            optDiv.addEventListener('click', () => {
+              selectedOption = key;
+              renderPollUI(question, currentPoll.options);
+            });
+          }
+
+          optionsContainer.appendChild(optDiv);
+        });
+
+        updateVoteButtonState();
+      }
+
+      // Initial Fetch from REST API
+      async function fetchPoll() {
+        if (!pollId) {
+          questionEl.textContent = 'Invalid Poll URL';
+          optionsContainer.innerHTML = '<div class="p-4 rounded-lg bg-surface-container-low text-outline text-center">Poll ID missing in URL.</div>';
+          setStatus('offline', 'Error');
+          voteBtn.disabled = true;
+          if (shareLinkInput) shareLinkInput.value = '';
+          return;
+        }
+
+        if (shareLinkInput) {
+          shareLinkInput.value = getShareableUrl();
+        }
+
+        try {
+          const res = await fetch(`${CONFIG.REST_API_URL}/polls/${encodeURIComponent(pollId)}`);
+          if (!res.ok) {
+            if (res.status === 404) {
+              questionEl.textContent = 'Poll Not Found';
+              optionsContainer.innerHTML = '<div class="p-4 rounded-lg bg-surface-container-low text-outline text-center">This poll does not exist.</div>';
+              setStatus('offline', '404');
+              voteBtn.disabled = true;
+              return;
+            }
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          currentPoll = await res.json();
+          renderPollUI(currentPoll.question, currentPoll.options);
+          connectWS();
+
+        } catch (err) {
+          console.error(err);
+          questionEl.textContent = 'Error loading poll';
+          setStatus('offline', 'REST Error');
+        }
+      }
+
+      // WebSocket Connection for Live Push Updates
+      function connectWS() {
+        if (ws) ws.close();
+
+        setStatus('connecting', 'Connecting...');
+        const wsUrl = `${CONFIG.WS_API_URL}?pollId=${encodeURIComponent(pollId)}`;
+
+        try {
+          ws = new WebSocket(wsUrl);
+
+          ws.onopen = () => {
+            console.log('Connected to WebSocket:', wsUrl);
+            setStatus('live', 'Live');
+            if (reconnectTimer) {
+              clearTimeout(reconnectTimer);
+              reconnectTimer = null;
+            }
+          };
+
+          ws.onmessage = (event) => {
+            try {
+              const payload = JSON.parse(event.data);
+              console.log('Broadcast received:', payload);
+              if (payload.options) {
+                if (!currentPoll) currentPoll = {};
+                currentPoll.options = payload.options;
+                renderPollUI(currentPoll.question || payload.question, payload.options);
+              }
+            } catch (e) {
+              console.error('WS Parse Error:', e);
+            }
+          };
+
+          ws.onclose = () => {
+            console.warn('WS Disconnected. Reconnecting...');
+            setStatus('connecting', 'Reconnecting...');
+            reconnectTimer = setTimeout(connectWS, 3000);
+          };
+
+          ws.onerror = (err) => {
+            console.error('WS Error:', err);
+            setStatus('offline', 'Disconnected');
+          };
+
+        } catch (err) {
+          console.error('WS Init Error:', err);
+          setStatus('offline', 'WS Error');
+        }
+      }
+
+      // Submit Vote
+      voteBtn.addEventListener('click', async () => {
+        if (!selectedOption || hasVoted) return;
+
+        voteBtn.disabled = true;
+        voteBtn.textContent = 'Submitting vote...';
+        hideError();
+
+        try {
+          const res = await fetch(`${CONFIG.REST_API_URL}/polls/${encodeURIComponent(pollId)}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ option: selectedOption })
+          });
+
+          if (!res.ok) {
+            throw new Error(`Server returned HTTP ${res.status}`);
+          }
+
+          // Mark voted persistently in localStorage to prevent repeat voting on refresh
+          hasVoted = true;
+          localStorage.setItem(storageKey, selectedOption);
+
+          // Re-render UI in locked voted state
+          if (currentPoll && currentPoll.options) {
+            renderPollUI(currentPoll.question, currentPoll.options);
+          } else {
+            updateVoteButtonState();
+          }
+
+        } catch (err) {
+          console.error('Vote failed:', err);
+          showError('Failed to record vote. Please try again.');
+          voteBtn.disabled = false;
+          voteBtn.textContent = 'Vote';
+        }
+      });
+
+      // Robust Sharing Mechanism (Native Mobile Share Sheet + Clipboard Fallback)
+      function showCopySuccess() {
+        if (copyBtnText) copyBtnText.textContent = 'Copied!';
+        if (shareText) shareText.textContent = 'Link copied!';
+        setTimeout(() => {
+          if (copyBtnText) copyBtnText.textContent = 'Copy';
+          if (shareText) shareText.textContent = 'Share poll';
+        }, 2500);
+      }
+
+      async function copyLinkToClipboard() {
+        const shareUrl = getShareableUrl();
+        if (!shareUrl) return;
+
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(shareUrl);
+            showCopySuccess();
+            return;
+          } catch (err) {
+            console.warn('Clipboard writeText failed:', err);
+          }
+        }
+
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.value = shareUrl;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textarea);
+          if (successful) {
+            showCopySuccess();
+          } else {
+            prompt('Copy this poll link:', shareUrl);
+          }
+        } catch (e) {
+          prompt('Copy this poll link:', shareUrl);
+        }
+      }
+
+      if (copyLinkBtn) {
+        copyLinkBtn.addEventListener('click', copyLinkToClipboard);
+      }
+      if (shareLinkInput) {
+        shareLinkInput.addEventListener('click', function() {
+          this.select();
+        });
+      }
+
+      shareBtn.addEventListener('click', async () => {
+        const shareUrl = getShareableUrl();
+        const pollTitle = (currentPoll && currentPoll.question) ? currentPoll.question : 'PulsePoll';
+
+        // 1. Try Native Mobile Web Share API
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: `PulsePoll: ${pollTitle}`,
+              text: `Vote now on PulsePoll: "${pollTitle}"`,
+              url: shareUrl
+            });
+            return;
+          } catch (err) {
+            if (err.name !== 'AbortError') {
+              console.warn('Native share failed, falling back to clipboard:', err);
+            } else {
+              return; // User cancelled share sheet
+            }
+          }
+        }
+
+        // 2. Clipboard API fallback
+        await copyLinkToClipboard();
+      });
+
+      fetchPoll();
+    })();
+  </script>
+</body>
+</html>
