@@ -1,4 +1,4 @@
-# ⚡ PulsePoll — Real-Time Serverless Polling & Voting Engine
+#  PulsePoll — Real-Time Serverless Polling & Voting Engine
 
 [![Go](https://img.shields.io/badge/Go-1.26-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-FF9900?style=flat&logo=amazon-aws)](https://aws.amazon.com/)
@@ -10,15 +10,15 @@ A production-grade, distributed real-time polling application engineered in **Go
 
 ---
 
-## 🌐 Live Deployment & Demos
+##  Live Deployment & Demos
 
-- 🚀 **Live Web Application (HTTPS):** [https://pulsepoll-frontend-086689959557.s3.ap-south-1.amazonaws.com/index.html](https://pulsepoll-frontend-086689959557.s3.ap-south-1.amazonaws.com/index.html)
-- 📡 **REST API Base URL:** `https://6bu1yb1kh3.execute-api.ap-south-1.amazonaws.com/Prod/`
-- ⚡ **WebSocket Gateway:** `wss://ev9s1dc0i4.execute-api.ap-south-1.amazonaws.com/prod`
+-  **Live Web Application (HTTPS):** [https://pulsepoll-frontend-086689959557.s3.ap-south-1.amazonaws.com/index.html](https://pulsepoll-frontend-086689959557.s3.ap-south-1.amazonaws.com/index.html)
+-  **REST API Base URL:** `https://6bu1yb1kh3.execute-api.ap-south-1.amazonaws.com/Prod/`
+- **WebSocket Gateway:** `wss://ev9s1dc0i4.execute-api.ap-south-1.amazonaws.com/prod`
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```
                                   ┌────────────────────────────────────────────────┐
@@ -53,7 +53,7 @@ A production-grade, distributed real-time polling application engineered in **Go
 
 ---
 
-## 🎯 Core Technical Highlights
+##  Core Technical Highlights
 
 ### 1. Atomic Increments & Concurrency Safety
 In distributed systems, naive read-modify-write patterns (`count = count + 1`) suffer from race conditions and lost updates under high concurrency. PulsePoll utilizes DynamoDB's native **atomic `ADD`** operation (`ADD Options.#opt.#cnt :one`), serializing increments at the storage engine level with **zero database locks** and **100% mathematical consistency**.
@@ -72,13 +72,13 @@ Anonymous voters are prevented from spamming votes across page refreshes via cli
 
 ---
 
-## 📊 Concurrency Load Benchmark (1,000 Votes)
+##  Concurrency Load Benchmark (1,000 Votes)
 
 PulsePoll includes a built-in Go load testing program (`cmd/loadtest/main.go`) to simulate high-concurrency traffic bursts.
 
 ```text
 ================================================================
-🚀 PulsePoll Real-Time Serverless Load Test — 1,000 Votes
+ PulsePoll Real-Time Serverless Load Test — 1,000 Votes
 ================================================================
 Target Endpoint:     https://6bu1yb1kh3.execute-api.ap-south-1.amazonaws.com/Prod
 Total Requests Sent: 1,000
@@ -104,7 +104,7 @@ Total Counted in DynamoDB: 1,000 / 1,000
 
 ---
 
-## 🗄️ Database Design
+##  Database Design
 
 ### `Polls` Table
 | Attribute | Type | Key Role | Description |
@@ -200,7 +200,7 @@ Content-Type: application/json
 
 ---
 
-## 🛠️ Local Development & Deployment
+## Local Development & Deployment
 
 ### Prerequisites
 - [Go 1.26+](https://golang.org/)
@@ -229,7 +229,7 @@ go run cmd/loadtest/main.go
 
 ---
 
-## 💡 System Design & Interview Key Takeaways
+## 💡 System Design 
 
 1. **Why Go on Lambda?**  
    Compiled Go binaries on `provided.al2023` execute with ~10ms cold starts compared to 500ms+ for Node.js/Python containers, with minimal memory footprint (39–45MB).
