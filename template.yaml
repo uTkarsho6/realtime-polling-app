@@ -1,0 +1,240 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Real-Time Serverless Polling & Voting Application
+
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+    Runtime: provided.al2023
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        POLLS_TABLE: !Ref PollsTable
+        CONNECTIONS_TABLE: !Ref ConnectionsTable
+
+Resources:
+  # ------------------------------------------------------------
+  # DynamoDB: Polls Table
+  # ------------------------------------------------------------
+  PollsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Polls
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PollId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PollId
+          KeyType: HASH
+
+  # ------------------------------------------------------------
+  # DynamoDB: Connections Table (with GSI on PollId)
+  # ------------------------------------------------------------
+  ConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Connections
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: ConnectionId
+          AttributeType: S
+        - AttributeName: PollId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ConnectionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: PollIdIndex
+          KeySchema:
+            - AttributeName: PollId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # ------------------------------------------------------------
+  # REST API: Create Poll
+  # ------------------------------------------------------------
+  CreatePollFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/createPoll/
+      Handler: bootstrap
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref PollsTable
+      Events:
+        CreatePollApi:
+          Type: Api
+          Properties:
+            Path: /polls
+            Method: post
+
+  # ------------------------------------------------------------
+  # REST API: Get Poll
+  # ------------------------------------------------------------
+  GetPollFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/getPoll/
+      Handler: bootstrap
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PollsTable
+      Events:
+        GetPollApi:
+          Type: Api
+          Properties:
+            Path: /polls/{pollId}
+            Method: get
+
+  # ------------------------------------------------------------
+  # REST API: Submit Vote
+  # ------------------------------------------------------------
+  SubmitVoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/submitVote/
+      Handler: bootstrap
+      Environment:
+        Variables:
+          WEBSOCKET_ENDPOINT: !Sub "https://${PollingWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref PollsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConnectionsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+              Resource: !GetAtt ConnectionsTable.Arn
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*'
+      Events:
+        SubmitVoteApi:
+          Type: Api
+          Properties:
+            Path: /polls/{pollId}/vote
+            Method: post
+  # ------------------------------------------------------------
+  # WebSocket API Gateway
+  # ------------------------------------------------------------
+  PollingWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: PollingWebSocketApi
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  # ------------------------------------------------------------
+  # WebSocket: OnConnect Lambda
+  # ------------------------------------------------------------
+  OnConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/onConnect/
+      Handler: bootstrap
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ConnectionsTable
+
+  # ------------------------------------------------------------
+  # WebSocket: OnDisconnect Lambda
+  # ------------------------------------------------------------
+  OnDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/onDisconnect/
+      Handler: bootstrap
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ConnectionsTable
+
+  # ------------------------------------------------------------
+  # WebSocket Integrations & Routes
+  # ------------------------------------------------------------
+  ConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref PollingWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnConnectFunction.Arn}/invocations"
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PollingWebSocketApi
+      RouteKey: $connect
+      AuthorizationType: NONE
+      Target: !Join ['/', ['integrations', !Ref ConnectIntegration]]
+
+  DisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref PollingWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnDisconnectFunction.Arn}/invocations"
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PollingWebSocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      Target: !Join ['/', ['integrations', !Ref DisconnectIntegration]]
+
+  # ------------------------------------------------------------
+  # Lambda Permissions for API Gateway
+  # ------------------------------------------------------------
+  OnConnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref OnConnectFunction
+      Principal: apigateway.amazonaws.com
+
+  OnDisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref OnDisconnectFunction
+      Principal: apigateway.amazonaws.com
+
+  # ------------------------------------------------------------
+  # WebSocket Deployment & Stage
+  # ------------------------------------------------------------
+  WebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DisconnectRoute
+    Properties:
+      ApiId: !Ref PollingWebSocketApi
+
+  WebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref PollingWebSocketApi
+      DeploymentId: !Ref WebSocketDeployment
+      StageName: prod
+
+# ------------------------------------------------------------
+# Outputs (Exported API URLs)
+# ------------------------------------------------------------
+Outputs:
+  RestApiUrl:
+    Description: "Base URL for REST API (Stage: Prod)"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+  WebSocketApiUrl:
+    Description: "WebSocket URL for real-time clients"
+    Value: !Sub "wss://${PollingWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+
+  WebSocketManagementEndpoint:
+    Description: "Management endpoint used by backend to push updates"
+    Value: !Sub "https://${PollingWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
