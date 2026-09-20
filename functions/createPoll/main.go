@@ -30,7 +30,8 @@ type CreatePollResponse struct {
 
 // OptionCount holds the vote count for a single poll option in DynamoDB.
 type OptionCount struct {
-	Count int `dynamodbav:"count"`
+	Count int `dynamodbav:"count" json:"count"`
+
 }
 
 // Build the DynamoDB item
