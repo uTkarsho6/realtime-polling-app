@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -164,12 +166,12 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		},
 	})
 	if err != nil {
-		// Poll does not exist
+		log.Printf("ERROR: UpdateItem failed for pollId %s, option %s: %v", pollId, body.Option, err)
 		var condErr *types.ConditionalCheckFailedException
 		if errors.As(err, &condErr) {
 			return errorResponse(http.StatusNotFound, "poll not found"), nil
 		}
-		return errorResponse(http.StatusInternalServerError, "failed to record vote"), nil
+		return errorResponse(http.StatusInternalServerError, fmt.Sprintf("failed to record vote: %v", err)), nil
 	}
 
 	// Unmarshal updated poll and broadcast to live WebSocket connections
