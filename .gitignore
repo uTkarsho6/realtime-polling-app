@@ -6,9 +6,11 @@ PROJECT_PLAN.md
 .env
 .DS_Store
 *.DS_Store
-createPoll
-getPoll
-submitVote
-onConnect
-onDisconnect
+/createPoll
+/getPoll
+/submitVote
+/onConnect
+/onDisconnect
+bootstrap
 samconfig.toml
+
