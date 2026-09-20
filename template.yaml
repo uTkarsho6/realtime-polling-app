@@ -59,6 +59,8 @@ Resources:
   # ------------------------------------------------------------
   CreatePollFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: functions/createPoll/
       Handler: bootstrap
@@ -77,6 +79,8 @@ Resources:
   # ------------------------------------------------------------
   GetPollFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: functions/getPoll/
       Handler: bootstrap
@@ -95,6 +99,8 @@ Resources:
   # ------------------------------------------------------------
   SubmitVoteFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: functions/submitVote/
       Handler: bootstrap
@@ -121,6 +127,7 @@ Resources:
           Properties:
             Path: /polls/{pollId}/vote
             Method: post
+
   # ------------------------------------------------------------
   # WebSocket API Gateway
   # ------------------------------------------------------------
@@ -136,6 +143,8 @@ Resources:
   # ------------------------------------------------------------
   OnConnectFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: functions/onConnect/
       Handler: bootstrap
@@ -148,6 +157,8 @@ Resources:
   # ------------------------------------------------------------
   OnDisconnectFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: functions/onDisconnect/
       Handler: bootstrap
